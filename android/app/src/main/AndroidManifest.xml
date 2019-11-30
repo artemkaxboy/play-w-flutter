@@ -28,5 +28,10 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+<!--https://medium.com/@elye.project/keep-your-keys-outside-manifest-and-gradle-ba44110bafca-->
+        <meta-data android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_api_key"/>
+
     </application>
 </manifest>

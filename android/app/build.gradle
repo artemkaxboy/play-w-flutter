@@ -44,6 +44,8 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        resValue "string", "google_maps_api_key", localProperties.getProperty('google.maps.api_key')
     }
 
     buildTypes {
