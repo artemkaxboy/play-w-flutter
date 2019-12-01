@@ -4,8 +4,12 @@
 
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+const Color panelBackground = Color.fromARGB(0x60, 0x3f, 0x51, 0xb5);
 
 void main() => runApp(MyApp());
 
@@ -27,33 +31,134 @@ class MainScreen extends StatefulWidget {
 class MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Maps Exampe'),),
-//      body: Center(child: Text('Center'),),
-      body: Center(child: MapSample(),),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              child: Text('Drawer Header'),
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-            ),
-            ListTile(
-              title: Text('Item 1'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            )
-          ],
+    return Stack(children: <Widget>[
+      Scaffold(body: Center(child: MapSample())),
+      Scaffold(
+        appBar: AppBar(
+          title: Text('Maps Exampe'),
+          elevation: 0.0,
+          backgroundColor: panelBackground,
         ),
+        backgroundColor: Colors.transparent,
+        drawer: Drawer(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              DrawerHeader(
+                child: Text('Drawer Header'),
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                ),
+              ),
+              ListTile(
+                title: Text('Item 1'),
+                onTap: () {
+                  Navigator.pop(context);
+                },
+              )
+            ],
+          ),
+        ),
+        body: PanelSample(),
       ),
-    );
+    ]);
   }
 }
 
+class InfoPanelText extends Text {
+  InfoPanelText(text) : super(text, style: TextStyle(color: Colors.white));
+}
+
+class InfoPanelValue extends Align {
+  InfoPanelValue(text)
+      : super(
+          alignment: Alignment.centerRight,
+          child: InfoPanelText(text),
+        );
+}
+
+class PanelSample extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => PanelSampleState();
+}
+
+class PanelSampleState extends State<PanelSample> {
+  var _latitude = 0.0;
+  var _longitude = 0.0;
+  var _accuracy = 0.0;
+  var _distance = 0.0;
+  var _azimuth = 0.0;
+  var _magnetic = 0.0;
+  var _current = 0.0;
+  var _elevation = 0.0;
+  var _polarization = 0.0;
+  var _gps = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return new Container(
+        color: panelBackground,
+        padding: EdgeInsets.only(left: 10, right: 10),
+        child: Row(children: <Widget>[
+          Flexible(
+            flex: 1,
+            child: Row(
+              children: <Widget>[
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: <Widget>[
+                    InfoPanelText("Latitude: "),
+                    InfoPanelText("Longitude: "),
+                    InfoPanelText("Accuracy: "),
+                    InfoPanelText("Distance: "),
+                    InfoPanelText("GPS: "),
+                  ],
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    InfoPanelValue(_latitude.toString()),
+                    InfoPanelText(_longitude.toString()),
+                    InfoPanelText(_accuracy.toString()),
+                    InfoPanelText(_distance.toString()),
+                    InfoPanelText(_gps.toString()),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Flexible(
+            flex: 1,
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: <Widget>[
+                    InfoPanelText("Azimuth: "),
+                    InfoPanelText("Magnetic: "),
+                    InfoPanelText("Current: "),
+                    InfoPanelText("Elevation: "),
+                    InfoPanelText("Polarization: "),
+                  ],
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    InfoPanelText(_azimuth.toString()),
+                    InfoPanelText(_magnetic.toString()),
+                    InfoPanelText(_current.toString()),
+                    InfoPanelText(_elevation.toString()),
+                    InfoPanelText(_polarization.toString()),
+                  ],
+                ),
+              ]),
+          )
+        ]));
+  }
+}
 
 class MapSample extends StatefulWidget {
   @override
