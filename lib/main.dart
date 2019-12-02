@@ -8,10 +8,28 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:satfinder_flutter/views/coord.dart';
 
 const Color panelBackground = Color.fromARGB(0x60, 0x3f, 0x51, 0xb5);
 
-void main() => runApp(MyApp());
+void main() {
+  runApp(
+    // Provide the model to all widgets within the app. We're using
+    // ChangeNotifierProvider because that's a simple way to rebuild
+    // widgets when a model changes. We could also just use
+    // Provider, but then we would have to listen to Counter ourselves.
+    //
+    // Read Provider's docs to learn about all the available providers.
+    ChangeNotifierProvider(
+      // Initialize the model in the builder. That way, Provider
+      // can own Counter's lifecycle, making sure to call `dispose`
+      // when not needed anymore.
+      builder: (context) => Location(),
+      child: MyApp(),
+    ),
+  );
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -23,45 +41,56 @@ class MyApp extends StatelessWidget {
   }
 }
 
+class Location with ChangeNotifier {
+  var lat = 123.0;
+  var lon;
+
+  void update(CameraPosition position) {
+    lat = position.target.latitude;
+    lon = position.target.longitude;
+    notifyListeners();
+  }
+}
+
 class MainScreen extends StatefulWidget {
   @override
   State<MainScreen> createState() => MainScreenState();
 }
 
 class MainScreenState extends State<MainScreen> {
+  var lat = 0;
+
   @override
   Widget build(BuildContext context) {
-    return Stack(children: <Widget>[
-      Scaffold(body: Center(child: MapSample())),
-      Scaffold(
-        appBar: AppBar(
-          title: Text('Maps Exampe'),
-          elevation: 0.0,
-          backgroundColor: panelBackground,
-        ),
-        backgroundColor: Colors.transparent,
-        drawer: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: <Widget>[
-              DrawerHeader(
-                child: Text('Drawer Header'),
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                ),
-              ),
-              ListTile(
-                title: Text('Item 1'),
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              )
-            ],
-          ),
-        ),
-        body: PanelSample(),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Maps Example'),
+        elevation: 0.0,
+        backgroundColor: panelBackground,
       ),
-    ]);
+      backgroundColor: Colors.transparent,
+//        body: PanelSample(),
+      body: Stack(
+        children: <Widget>[
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            bottom: 0,
+              child: MapSample()),
+          Positioned(
+            top: 0,
+            left: 0,
+            child: Consumer<Location>(
+              builder: (context, location, child) => Text(
+                '${location.lat}',
+                style: Theme.of(context).textTheme.display1,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -83,7 +112,7 @@ class PanelSample extends StatefulWidget {
 }
 
 class PanelSampleState extends State<PanelSample> {
-  var _latitude = 0.0;
+//  var _latitude = 0.0;
   var _longitude = 0.0;
   var _accuracy = 0.0;
   var _distance = 0.0;
@@ -118,7 +147,7 @@ class PanelSampleState extends State<PanelSample> {
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    InfoPanelValue(_latitude.toString()),
+                    CoordWidget(),
                     InfoPanelText(_longitude.toString()),
                     InfoPanelText(_accuracy.toString()),
                     InfoPanelText(_distance.toString()),
@@ -133,28 +162,28 @@ class PanelSampleState extends State<PanelSample> {
             child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: <Widget>[
-                    InfoPanelText("Azimuth: "),
-                    InfoPanelText("Magnetic: "),
-                    InfoPanelText("Current: "),
-                    InfoPanelText("Elevation: "),
-                    InfoPanelText("Polarization: "),
-                  ],
-                ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    InfoPanelText(_azimuth.toString()),
-                    InfoPanelText(_magnetic.toString()),
-                    InfoPanelText(_current.toString()),
-                    InfoPanelText(_elevation.toString()),
-                    InfoPanelText(_polarization.toString()),
-                  ],
-                ),
-              ]),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: <Widget>[
+                      InfoPanelText("Azimuth: "),
+                      InfoPanelText("Magnetic: "),
+                      InfoPanelText("Current: "),
+                      InfoPanelText("Elevation: "),
+                      InfoPanelText("Polarization: "),
+                    ],
+                  ),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      InfoPanelText(_azimuth.toString()),
+                      InfoPanelText(_magnetic.toString()),
+                      InfoPanelText(_current.toString()),
+                      InfoPanelText(_elevation.toString()),
+                      InfoPanelText(_polarization.toString()),
+                    ],
+                  ),
+                ]),
           )
         ]));
   }
@@ -187,6 +216,9 @@ class MapSampleState extends State<MapSample> {
         initialCameraPosition: _kGooglePlex,
         onMapCreated: (GoogleMapController controller) {
           _controller.complete(controller);
+        },
+        onCameraMove: (position) {
+          Provider.of<Location>(context, listen: false).update(position);
         },
       ),
       floatingActionButton: FloatingActionButton.extended(

@@ -1,20 +1,26 @@
 import 'package:flutter/cupertino.dart';
 
-import '../main.dart';
+//class CoordWidget extends StatefulWidget {
+//  @override
+//  State<CoordWidget> createState() => CoordWidgetState();
+//}
+//
+//class CoordWidgetState extends State<CoordWidget> {
+//  var _coord = new Coord();
+//
+//  @override
+//  Widget build(BuildContext context) {
+//    return new InfoPanelValue(_coord.toString());
+//  }
+//}
 
-class CoordWidget extends StatefulWidget {
-  @override
-  State<CoordWidget> createState() => CoordWidgetState();
-}
-
-class CoordWidgetState extends State<CoordWidget> {
-  var _coord = null;
-
+class CoordWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
     return null;
   }
+
 }
 
 enum CoordFormat {
