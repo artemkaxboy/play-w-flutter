@@ -1,26 +1,9 @@
 import 'package:flutter/cupertino.dart';
 
-//class CoordWidget extends StatefulWidget {
-//  @override
-//  State<CoordWidget> createState() => CoordWidgetState();
-//}
-//
-//class CoordWidgetState extends State<CoordWidget> {
-//  var _coord = new Coord();
-//
-//  @override
-//  Widget build(BuildContext context) {
-//    return new InfoPanelValue(_coord.toString());
-//  }
-//}
+import '../main.dart';
 
-class CoordWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    // TODO: implement build
-    return null;
-  }
-
+class CoordWidget extends InfoPanelText {
+  CoordWidget(Coord data) : super(data.toString());
 }
 
 enum CoordFormat {
@@ -42,11 +25,11 @@ class Coord {
   double value;
   CoordFormat format;
 
-  Coord({this.value = double.nan, this.format = CoordFormat.FLOAT});
+  Coord(this.value, {this.format = CoordFormat.FLOAT});
 
   @override
   String toString() {
-    if (value.isNaN) return getDefault();
+    if (value?.isNaN ?? true) return getDefault();
     return getFormatted();
   }
 
@@ -70,5 +53,5 @@ class Coord {
 
   static int getMinutes(double deg) => (deg * 60).abs().floor() % 60;
 
-  static getSeconds(double deg) => (deg * 3600).abs().floor() % 60;
+  static int getSeconds(double deg) => (deg * 3600).abs().floor() % 60;
 }

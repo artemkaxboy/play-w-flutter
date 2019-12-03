@@ -53,17 +53,17 @@ main() {
   });
 
   test('Coord string testing', () {
-    final coord1 = Coord();
+    final coord1 = Coord(double.nan);
     expect(coord1.toString(), "--.-----°", reason: "Default string error");
 
-    final coord2 = Coord(format: CoordFormat.MIN_SEC);
+    final coord2 = Coord(double.nan, format: CoordFormat.MIN_SEC);
     expect(coord2.toString(), "--°--'--\"", reason: "Default string error");
 
-    final coord3 = Coord(format: CoordFormat.FLOAT);
+    final coord3 = Coord(double.nan, format: CoordFormat.FLOAT);
     expect(coord3.toString(), coord1.toString(),
         reason: "Default string error");
 
-    final coord4 = Coord(value: 1);
+    final coord4 = Coord(1);
     expect(coord4.toString(), "1.00000°", reason: "Formatting error");
 
     coord4.value = 1.123456;
@@ -75,7 +75,7 @@ main() {
     coord4.value = -10.999999;
     expect(coord4.toString(), "-11.00000°", reason: "Formatting error");
 
-    final coord5 = Coord(value: 1, format: CoordFormat.MIN_SEC);
+    final coord5 = Coord(1, format: CoordFormat.MIN_SEC);
     expect(coord5.toString(), "1°00'00\"", reason: "Formatting error");
 
     coord5.value = 120 + 5 * min + 6 * sec;

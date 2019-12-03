@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,10 @@ import 'package:flutter/rendering.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:satfinder_flutter/views/coord.dart';
+import 'package:satfinder_flutter/views/length.dart';
+
+import 'src/service/LocationService.dart';
+
 
 const Color panelBackground = Color.fromARGB(0x60, 0x3f, 0x51, 0xb5);
 
@@ -25,7 +30,7 @@ void main() {
       // Initialize the model in the builder. That way, Provider
       // can own Counter's lifecycle, making sure to call `dispose`
       // when not needed anymore.
-      builder: (context) => Location(),
+      create: (context) => LocationStorage(),
       child: MyApp(),
     ),
   );
@@ -41,13 +46,16 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class Location with ChangeNotifier {
-  var lat = 123.0;
-  var lon;
+class LocationStorage with ChangeNotifier {
+  var latitude;
+  var longitude;
+  var accuracy;
+  final random = new Random();
 
   void update(CameraPosition position) {
-    lat = position.target.latitude;
-    lon = position.target.longitude;
+    latitude = position.target.latitude;
+    longitude = position.target.longitude;
+    accuracy = random.nextDouble();
     notifyListeners();
   }
 }
@@ -58,38 +66,47 @@ class MainScreen extends StatefulWidget {
 }
 
 class MainScreenState extends State<MainScreen> {
-  var lat = 0;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Maps Example'),
-        elevation: 0.0,
-        backgroundColor: panelBackground,
-      ),
-      backgroundColor: Colors.transparent,
-//        body: PanelSample(),
       body: Stack(
         children: <Widget>[
+          Container(
+            child: MapSample(),
+          ),
           Positioned(
+            top: 0,
             left: 0,
             right: 0,
-            top: 0,
-            bottom: 0,
-              child: MapSample()),
-          Positioned(
-            top: 0,
-            left: 0,
-            child: Consumer<Location>(
-              builder: (context, location, child) => Text(
-                '${location.lat}',
-                style: Theme.of(context).textTheme.display1,
-              ),
+            child: Column(
+              children: <Widget>[
+                AppBar(
+                  title: Text('Maps Example'),
+                  elevation: 0.0,
+                  backgroundColor: panelBackground,
+                ),
+                Consumer<LocationStorage>(
+                  builder: (context, location, child) => PanelSample(
+                    location: location,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class TestLoc extends StatelessWidget {
+  const TestLoc({Key key}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    var userLocation = Provider.of<UserLocation>(context);
+    return Center(
+      child: Text(
+          '${userLocation?.latitude}\n${userLocation?.longitude}'),
     );
   }
 }
@@ -107,85 +124,86 @@ class InfoPanelValue extends Align {
 }
 
 class PanelSample extends StatefulWidget {
+  final LocationStorage location;
+
+  const PanelSample({Key key, this.location}) : super(key: key);
+
   @override
-  State<StatefulWidget> createState() => PanelSampleState();
+  State<StatefulWidget> createState() {
+    return PanelSampleState();
+  }
 }
 
 class PanelSampleState extends State<PanelSample> {
-//  var _latitude = 0.0;
-  var _longitude = 0.0;
-  var _accuracy = 0.0;
-  var _distance = 0.0;
-  var _azimuth = 0.0;
-  var _magnetic = 0.0;
-  var _current = 0.0;
-  var _elevation = 0.0;
-  var _polarization = 0.0;
-  var _gps = 0;
-
   @override
   Widget build(BuildContext context) {
-    return new Container(
+    return Container(
         color: panelBackground,
         padding: EdgeInsets.only(left: 10, right: 10),
-        child: Row(children: <Widget>[
-          Flexible(
-            flex: 1,
-            child: Row(
-              children: <Widget>[
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
+        child: Row(
+          children: <Widget>[
+            Flexible(
+                flex: 1,
+                child: Row(
                   children: <Widget>[
-                    InfoPanelText("Latitude: "),
-                    InfoPanelText("Longitude: "),
-                    InfoPanelText("Accuracy: "),
-                    InfoPanelText("Distance: "),
-                    InfoPanelText("GPS: "),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        InfoPanelText("Latitude: "),
+                        InfoPanelText("Longitude: "),
+                        InfoPanelText("Accuracy: "),
+                        InfoPanelText("Distance: "),
+                        InfoPanelText("GPS: "),
+                      ],
+                    ),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        CoordWidget(Coord(widget.location.latitude)),
+                        CoordWidget(Coord(widget.location.longitude)),
+                        LengthWidget(Length(widget.location.accuracy)),
+                        InfoPanelText("GPS: "),
+                        InfoPanelText("GPS: "),
+                      ],
+                    ),
                   ],
-                ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
+                )),
+            Flexible(
+              flex: 1,
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
-                    CoordWidget(),
-                    InfoPanelText(_longitude.toString()),
-                    InfoPanelText(_accuracy.toString()),
-                    InfoPanelText(_distance.toString()),
-                    InfoPanelText(_gps.toString()),
-                  ],
-                ),
-              ],
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        InfoPanelText("Azimuth: "),
+                        InfoPanelText("Magnetic: "),
+                        InfoPanelText("Current: "),
+                        InfoPanelText("Elevation: "),
+                        InfoPanelText("Polarization: "),
+                      ],
+                    ),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        InfoPanelText("Azimuth: "),
+                        InfoPanelText("Azimuth: "),
+                        InfoPanelText("Azimuth: "),
+                        InfoPanelText("Azimuth: "),
+                        InfoPanelText("Azimuth: "),
+                      ],
+                    ),
+                  ]),
             ),
-          ),
-          Flexible(
-            flex: 1,
-            child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: <Widget>[
-                      InfoPanelText("Azimuth: "),
-                      InfoPanelText("Magnetic: "),
-                      InfoPanelText("Current: "),
-                      InfoPanelText("Elevation: "),
-                      InfoPanelText("Polarization: "),
-                    ],
-                  ),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      InfoPanelText(_azimuth.toString()),
-                      InfoPanelText(_magnetic.toString()),
-                      InfoPanelText(_current.toString()),
-                      InfoPanelText(_elevation.toString()),
-                      InfoPanelText(_polarization.toString()),
-                    ],
-                  ),
-                ]),
-          )
-        ]));
+            StreamProvider<UserLocation>(
+              create: (context) => LocationService().locationStream,
+              child: TestLoc(),
+            ),
+          ],
+        ));
   }
 }
 
@@ -218,7 +236,7 @@ class MapSampleState extends State<MapSample> {
           _controller.complete(controller);
         },
         onCameraMove: (position) {
-          Provider.of<Location>(context, listen: false).update(position);
+          Provider.of<LocationStorage>(context, listen: false).update(position);
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
